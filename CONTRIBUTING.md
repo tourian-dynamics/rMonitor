@@ -1,9 +1,9 @@
-# Contributing to `rtop`
+# Contributing to `rMonitor`
 
-We are thrilled that you want to help improve `rtop`! Contributions from the community are what make open-source projects so special. Please follow these guidelines to make sure your contribution matches the style and quality standards of the project.
+We are thrilled that you want to help improve `rMonitor`! Contributions from the community are what make open-source projects so special. Please follow these guidelines to make sure your contribution matches the style and quality standards of the project.
 
 ## 🛠️ Developer Environment Setup
-To build and test `rtop` locally:
+To build and test `rMonitor` locally:
 1. Make sure you have the standard Rust toolchain installed.
 2. Clone this repository.
 3. Check code formatting:

@@ -386,7 +386,7 @@ impl App {
 					(scaled_cpu * 1.5 + (pid.as_u32() % 5) as f32).clamp(0.0, 100.0)
 				} else if name_lower.contains("chrome") || name_lower.contains("firefox") || name_lower.contains("msedge") || name_lower.contains("electron") || name_lower.contains("code") || name_lower.contains("discord") {
 					(scaled_cpu * 0.4).clamp(0.0, 100.0)
-				} else if name_lower.contains("unity") || name_lower.contains("unreal") || name_lower.contains("game") || name_lower.contains("render") || name_lower.contains("obs") || name_lower.contains("dx") || name_lower.contains("rtop") {
+				} else if name_lower.contains("unity") || name_lower.contains("unreal") || name_lower.contains("game") || name_lower.contains("render") || name_lower.contains("obs") || name_lower.contains("dx") || name_lower.contains("rmon") {
 					(scaled_cpu * 2.0).clamp(0.0, 100.0)
 				} else {
 					(scaled_cpu * 0.05).clamp(0.0, 100.0)
@@ -513,7 +513,7 @@ fn main() -> Result<(), io::Error> {
 		let _ = disable_raw_mode();
 		let mut stdout = io::stdout();
 		let _ = execute!(stdout, LeaveAlternateScreen, DisableMouseCapture);
-		eprintln!("rtop crashed! Panic logged. Error: {} at {}", msg, location);
+		eprintln!("rMonitor crashed! Panic logged. Error: {} at {}", msg, location);
 	}));
 
 	let args: Vec<String> = std::env::args().collect();
@@ -530,7 +530,7 @@ fn main() -> Result<(), io::Error> {
 		}
 	}
 
-	log_message("INFO", "rtop starting up...");
+	log_message("INFO", "rMonitor starting up...");
 
 	enable_raw_mode()?;
 	let mut stdout = io::stdout();
@@ -593,7 +593,7 @@ fn main() -> Result<(), io::Error> {
 											app.set_status(format!("Successfully force-killed process (PID: {})", pid_val));
 										}
 										_ => {
-											app.set_status(format!("Failed to kill process (PID: {}). Run rtop as Admin?", pid_val));
+											app.set_status(format!("Failed to kill process (PID: {}). Run rmon as Admin?", pid_val));
 										}
 									}
 								}
@@ -681,7 +681,7 @@ fn main() -> Result<(), io::Error> {
 	)?;
 	terminal.show_cursor()?;
 
-	log_message("INFO", "rtop clean shutdown complete.");
+	log_message("INFO", "rMonitor clean shutdown complete.");
 
 	Ok(())
 }
@@ -723,7 +723,7 @@ fn draw_ui(f: &mut ratatui::Frame, app: &mut App) {
 		.border_style(Style::default().fg(theme.border));
 		
 	let title_p = Paragraph::new(Line::from(vec![
-		Span::styled(" ❖  rtop  ❖ ", Style::default().fg(Color::Rgb(30, 30, 46)).bg(theme.accent).add_modifier(Modifier::BOLD)),
+		Span::styled(" ❖  rMonitor  ❖ ", Style::default().fg(Color::Rgb(30, 30, 46)).bg(theme.accent).add_modifier(Modifier::BOLD)),
 		Span::styled(" │ ", Style::default().fg(theme.border)),
 		Span::styled(format!("{}@{}", username, host_name), Style::default().fg(Color::Rgb(255, 215, 0)).add_modifier(Modifier::BOLD)),
 		Span::styled(" │ ", Style::default().fg(theme.border)),
@@ -1501,9 +1501,9 @@ fn draw_spring_bar(width: u16, value: f64, max: f64) -> String {
 
 fn log_message(level: &str, msg: &str) {
 	if let Ok(app_data) = std::env::var("APPDATA") {
-		let log_dir = std::path::Path::new(&app_data).join("rtop");
+		let log_dir = std::path::Path::new(&app_data).join("rmonitor");
 		if std::fs::create_dir_all(&log_dir).is_ok() {
-			let log_file = log_dir.join("rtop.log");
+			let log_file = log_dir.join("rmonitor.log");
 			if let Ok(mut file) = std::fs::OpenOptions::new()
 				.create(true)
 				.append(true)
@@ -1590,7 +1590,7 @@ fn print_json_snapshot() {
 
 fn run_doctor() {
 	println!("==================================================");
-	println!("           rtop -- System Diagnostics             ");
+	println!("           rMonitor -- System Diagnostics             ");
 	println!("==================================================");
 	
 	#[cfg(windows)]
@@ -1647,7 +1647,7 @@ fn run_doctor() {
 	}
 	
 	if let Ok(app_data) = std::env::var("APPDATA") {
-		let log_file = std::path::Path::new(&app_data).join("rtop").join("rtop.log");
+		let log_file = std::path::Path::new(&app_data).join("rmonitor").join("rmonitor.log");
 		println!("Log File Path:     {}", log_file.to_string_lossy());
 		println!("Log Status:        {}", if log_file.exists() { "Active" } else { "Not created yet" });
 	}
@@ -1678,7 +1678,7 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
 
 fn run_install() {
 	println!("==================================================");
-	println!("           rtop -- Windows Installation           ");
+	println!("           rMonitor -- Windows Installation           ");
 	println!("==================================================");
 	
 	let exe_path = match std::env::current_exe() {
@@ -1695,7 +1695,7 @@ fn run_install() {
 	#[cfg(windows)]
 	{
 		let ps_script = format!(
-			r#"$WshShell = New-Object -ComObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut("$env:APPDATA\Microsoft\Windows\Start Menu\Programs\rtop.lnk"); $Shortcut.TargetPath = "{}"; $Shortcut.WorkingDirectory = "{}"; $Shortcut.IconLocation = "{},0"; $Shortcut.Save();"#,
+			r#"$WshShell = New-Object -ComObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut("$env:APPDATA\Microsoft\Windows\Start Menu\Programs\rMonitor.lnk"); $Shortcut.TargetPath = "{}"; $Shortcut.WorkingDirectory = "{}"; $Shortcut.IconLocation = "{},0"; $Shortcut.Save();"#,
 			exe_path.to_string_lossy().replace('\\', "\\\\"),
 			exe_dir.to_string_lossy().replace('\\', "\\\\"),
 			exe_path.to_string_lossy().replace('\\', "\\\\")
@@ -1704,7 +1704,7 @@ fn run_install() {
 			.args(&["-Command", &ps_script])
 			.status();
 		match status {
-			Ok(s) if s.success() => println!("  [OK] Start Menu shortcut created successfully at %APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\rtop.lnk"),
+			Ok(s) if s.success() => println!("  [OK] Start Menu shortcut created successfully at %APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\rMonitor.lnk"),
 			_ => println!("  [ERROR] Failed to run PowerShell shortcut creation script"),
 		}
 	}
@@ -1716,7 +1716,7 @@ fn run_install() {
 		use winreg::enums::*;
 		use winreg::RegKey;
 		let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-		let path = r"Software\Microsoft\Windows\CurrentVersion\App Paths\rtop.exe";
+		let path = r"Software\Microsoft\Windows\CurrentVersion\App Paths\rmon.exe";
 		match hkcu.create_subkey(path) {
 			Ok((key, _)) => {
 				let _ = key.set_value("", &exe_path.to_string_lossy().to_string());
@@ -1731,6 +1731,6 @@ fn run_install() {
 	
 	println!("==================================================");
 	println!("Installation complete!");
-	println!("You can now launch 'rtop' from the Start Menu");
-	println!("or by pressing Win+R and entering 'rtop'!");
+	println!("You can now launch 'rMonitor' from the Start Menu");
+	println!("or by pressing Win+R and entering 'rmon'!");
 }

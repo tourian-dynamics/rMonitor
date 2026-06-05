@@ -1,6 +1,6 @@
 # Security Policy
 
-We take the security of `rtop` seriously. If you discover a vulnerability, please report it following this policy.
+We take the security of `rMonitor` seriously. If you discover a vulnerability, please report it following this policy.
 
 ## Reporting a Vulnerability
 
@@ -12,5 +12,5 @@ We will acknowledge receipt of your report within 48 hours and work with you to 
 
 ## Scope & Philosophy
 
-*   **Registry & System Access:** `rtop` reads system metrics directly using standard APIs (or winreg under Windows). It does not execute raw command strings or start shell contexts with user input, protecting the host system from injection vectors.
-*   **Minimal Permissions:** `rtop` does not require Administrator/UAC elevation to run. While running elevated grants access to additional system stats (such as restricted process-specific disk transfer rates), standard standard-user execution is fully supported and secure.
+*   **Registry & System Access:** `rMonitor` reads system metrics directly using standard APIs (or winreg under Windows). It does not execute raw command strings or start shell contexts with user input, protecting the host system from injection vectors.
+*   **Minimal Permissions:** `rMonitor` does not require Administrator/UAC elevation to run. While running elevated grants access to additional system stats (such as restricted process-specific disk transfer rates), standard standard-user execution is fully supported and secure.

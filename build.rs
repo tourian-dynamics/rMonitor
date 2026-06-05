@@ -3,12 +3,12 @@ use std::io::{Read, Write};
 use std::path::Path;
 
 fn main() {
-    // 1. Convert rtop_icon_256.png to rtop.ico dynamically
-    let png_path = Path::new("rtop_icon_256.png");
-    let ico_path = Path::new("rtop.ico");
+    // 1. Convert rmon_icon_256.png to rmon.ico dynamically
+    let png_path = Path::new("rmon_icon_256.png");
+    let ico_path = Path::new("rmon.ico");
 
     if png_path.exists() {
-        let mut png_file = File::open(png_path).expect("failed to open rtop_icon.png");
+        let mut png_file = File::open(png_path).expect("failed to open rmon_icon_256.png");
         let mut png_data = Vec::new();
         png_file.read_to_end(&mut png_data).expect("failed to read png");
 
@@ -43,7 +43,7 @@ fn main() {
     {
         if ico_path.exists() {
             let mut res = winres::WindowsResource::new();
-            res.set_icon("rtop.ico");
+            res.set_icon("rmon.ico");
             res.compile().expect("failed to compile winres resource");
         }
     }
