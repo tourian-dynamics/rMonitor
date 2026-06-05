@@ -1,3 +1,11 @@
+```text
+  _____                       _             
+ |_   _|___ _ _ ___ _ ___ _ _| |_ _ _____ ___
+   | | | . | | |  _| | . | | | . | | |     |  _|
+   |_| |___|___|_| |_|___|_|_|___|_|_|_|_|_|___|
+                                  D Y N A M I C S
+```
+
 # rMonitor — Rust System Monitor
 
 `rMonitor` is a lightweight, responsive, and high-performance terminal system monitor (TUI) custom-tailored for Windows, built using **Rust** and the **Ratatui** framework.

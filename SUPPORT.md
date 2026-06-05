@@ -1,3 +1,11 @@
+```text
+  _____                       _             
+ |_   _|___ _ _ ___ _ ___ _ _| |_ _ _____ ___
+   | | | . | | |  _| | . | | | . | | |     |  _|
+   |_| |___|___|_| |_|___|_|_|___|_|_|_|_|_|___|
+                                  D Y N A M I C S
+```
+
 # Support Guide for `rMonitor`
 
 Thank you for using `rMonitor`! If you run into issues, need assistance, or want to ask questions, please refer to this guide.
