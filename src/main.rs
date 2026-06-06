@@ -18,6 +18,14 @@ use ratatui::{
 };
 use sysinfo::{Disks, Networks, System};
 
+mod reg;
+mod win32;
+mod logger;
+mod config;
+
+use win32::{is_dark_mode, copy_text_to_clipboard, ConsoleTitleGuard, BorderlessConsole, relaunch_in_conhost_if_needed};
+use logger::log_message;
+
 const README_CONTENT: &str = include_str!("../README.md");
 const SUPPORT_CONTENT: &str = include_str!("../SUPPORT.md");
 const LICENSE_CONTENT: &str = include_str!("../LICENSE.md");
@@ -47,8 +55,7 @@ impl Spring {
     }
 
     fn update(&mut self, dt: f64) {
-        let delta = self.value - self.target;
-        let force = -self.tension * delta - self.damping * self.velocity;
+        let force = self.tension * (self.target - self.value) - self.damping * self.velocity;
         self.velocity += force * dt;
         self.value += self.velocity * dt;
     }
@@ -59,7 +66,7 @@ struct ProcessItem {
     pid: u32,
     name: String,
     cpu: f32,
-    mem: u64, // bytes
+    mem: u64,
     disk_read: u64,
     disk_write: u64,
     gpu: f32,
@@ -75,27 +82,8 @@ struct ThemeColors {
     highlight_bg: Color,
 }
 
-fn get_win_accent_color() -> String {
-    #[cfg(windows)]
-    {
-        use winreg::RegKey;
-        use winreg::enums::*;
-        let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-        let path = r"Software\Microsoft\Windows\DWM";
-        if let Ok(key) = hkcu.open_subkey_with_flags(path, KEY_READ) {
-            if let Ok(val) = key.get_value::<u32, _>("AccentColor") {
-                let r = (val & 0xFF) as u8;
-                let g = ((val >> 8) & 0xFF) as u8;
-                let b = ((val >> 16) & 0xFF) as u8;
-                return format!("#{:02X}{:02X}{:02X}", r, g, b);
-            }
-        }
-    }
-    "#00F5FF".to_string()
-}
-
 fn get_theme(dark: bool) -> ThemeColors {
-    let accent_hex = get_win_accent_color();
+    let accent_hex = win32::get_win_accent_color();
     let accent_color = if accent_hex.starts_with('#') && accent_hex.len() == 7 {
         let r = u8::from_str_radix(&accent_hex[1..3], 16).unwrap_or(0);
         let g = u8::from_str_radix(&accent_hex[3..5], 16).unwrap_or(245);
@@ -122,22 +110,6 @@ fn get_theme(dark: bool) -> ThemeColors {
             highlight_bg: Color::Rgb(0, 100, 220), // Deep blue
         }
     }
-}
-
-fn is_dark_mode() -> bool {
-    #[cfg(windows)]
-    {
-        use winreg::RegKey;
-        use winreg::enums::*;
-        let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-        let path = r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize";
-        if let Ok(key) = hkcu.open_subkey_with_flags(path, KEY_READ) {
-            if let Ok(val) = key.get_value::<u32, _>("AppsUseLightTheme") {
-                return val == 0;
-            }
-        }
-    }
-    true // Default to dark mode
 }
 
 fn get_gpu_names() -> Vec<String> {
@@ -306,16 +278,29 @@ struct App {
     markdown_lines: Vec<ratatui::text::Line<'static>>,
     markdown_scroll: usize,
     show_help: bool,
+    on_battery: bool,
+    last_power_check: Instant,
+    config: config::AppConfig,
+    should_quit: bool,
+    quit_btn_bounds: Option<(u16, u16, u16)>,
+    help_btn_bounds: Option<(u16, u16, u16)>,
+    drag_active: bool,
+    drag_start_cursor: Option<(i32, i32)>,
+    drag_start_window: Option<(i32, i32)>,
 }
 
 impl App {
     fn new() -> Self {
-        let mut sys = System::new_all();
-        sys.refresh_all();
+        let sys = System::new();
         let disks = Disks::new_with_refreshed_list();
         let networks = Networks::new_with_refreshed_list();
 
-        let dark = is_dark_mode();
+        let config = config::AppConfig::load();
+        let dark = match config.theme_mode.as_str() {
+            "dark" => true,
+            "light" => false,
+            _ => is_dark_mode(),
+        };
         let theme = get_theme(dark);
         let mut gpu_names = get_gpu_names();
         // Sort so discrete GPUs (like RX 7900 XTX) come first
@@ -326,6 +311,9 @@ impl App {
                 b.contains("RX") || b.contains("RTX") || b.contains("GTX") || b.contains("NVIDIA");
             is_discrete_b.cmp(&is_discrete_a)
         });
+
+        let power = win32::query_power_status();
+        let on_battery = !power.ac_online;
 
         let mut app = Self {
             sys,
@@ -361,6 +349,15 @@ impl App {
             markdown_lines: Vec::new(),
             markdown_scroll: 0,
             show_help: false,
+            on_battery,
+            last_power_check: Instant::now(),
+            config,
+            should_quit: false,
+            quit_btn_bounds: None,
+            help_btn_bounds: None,
+            drag_active: false,
+            drag_start_cursor: None,
+            drag_start_window: None,
         };
         app.update_metrics();
         app
@@ -375,7 +372,11 @@ impl App {
         self.net_statuses = get_network_statuses();
 
         // Dynamic theme reload
-        let dark = is_dark_mode();
+        let dark = match self.config.theme_mode.as_str() {
+            "dark" => true,
+            "light" => false,
+            _ => is_dark_mode(),
+        };
         self.theme = get_theme(dark);
 
         // Overall CPU
@@ -644,6 +645,18 @@ fn main() -> Result<(), io::Error> {
         }
     }
 
+    let config = config::AppConfig::load();
+    relaunch_in_conhost_if_needed();
+
+    let _instance_guard = match win32::SingleInstanceGuard::try_new() {
+        Ok(g) => g,
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    logger::set_event_log_enabled(config.enable_event_log);
     log_message("INFO", "rMonitor starting up...");
 
     let _title_guard = ConsoleTitleGuard::new("rMon");
@@ -652,23 +665,56 @@ fn main() -> Result<(), io::Error> {
     let mut stdout = io::stdout();
     let _ = execute!(stdout, crossterm::terminal::SetSize(110, 38));
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
+
+    let _borderless = if config.enable_borderless {
+        Some(BorderlessConsole::enable())
+    } else {
+        None
+    };
+    std::thread::sleep(Duration::from_millis(50)); // Allow dimensions settle delay
+
+    if _borderless.is_none() {
+        win32::center_console_window();
+    }
+
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
     let mut app = App::new();
-    let tick_rate = Duration::from_millis(100);
+    let tick_rate = Duration::from_millis(app.config.refresh_rate_ms as u64);
     let mut last_tick = Instant::now();
     let mut last_refresh = Instant::now();
 
-    loop {
+    while !app.should_quit {
+        // Check Power Status for Battery Throttling periodically
+        if app.last_power_check.elapsed() > Duration::from_millis(5000) {
+            let power = win32::query_power_status();
+            let current_on_battery = !power.ac_online;
+            if current_on_battery != app.on_battery {
+                app.on_battery = current_on_battery;
+                let state = if current_on_battery {
+                    "Battery (Power-Saving Throttling Enabled)"
+                } else {
+                    "AC Power"
+                };
+                log_message("INFO", &format!("Power status changed: {}", state));
+            }
+            app.last_power_check = Instant::now();
+        }
+
         // Physics updates at 100ms interval
         let now = Instant::now();
         let dt = now.duration_since(last_tick).as_secs_f64();
         app.update_physics(dt);
         last_tick = now;
 
-        // Refresh system diagnostics metrics every 1.5s
-        if last_refresh.elapsed() > Duration::from_millis(1500) {
+        // Refresh system diagnostics metrics every 1.5s (or 3.0s if on battery)
+        let refresh_interval = if app.on_battery {
+            Duration::from_millis(3000)
+        } else {
+            Duration::from_millis(1500)
+        };
+        if last_refresh.elapsed() > refresh_interval {
             app.update_metrics();
             last_refresh = Instant::now();
         }
@@ -679,11 +725,15 @@ fn main() -> Result<(), io::Error> {
         terminal.draw(|f| draw_ui(f, &mut app))?;
 
         // Poll events
-        let timeout = tick_rate
+        let current_tick_rate = if app.on_battery {
+            tick_rate * 2
+        } else {
+            tick_rate
+        };
+        let timeout = current_tick_rate
             .checked_sub(now.elapsed())
             .unwrap_or(Duration::from_secs(0));
 
-        let mut should_break = false;
         if event::poll(timeout)? {
             match event::read()? {
                 Event::Key(key) => {
@@ -834,7 +884,7 @@ fn main() -> Result<(), io::Error> {
                             let theme = get_theme(is_dark_mode());
                             match key.code {
                                 KeyCode::Char('q') | KeyCode::Esc => {
-                                    should_break = true;
+                                    app.should_quit = true;
                                 }
                                 KeyCode::Enter => {
                                     if let Some(idx) = app.process_state.selected() {
@@ -919,17 +969,61 @@ fn main() -> Result<(), io::Error> {
                 }
                 Event::Mouse(mouse) => match mouse.kind {
                     event::MouseEventKind::Down(event::MouseButton::Left) => {
-                        app.selection_start = Some((mouse.column, mouse.row));
-                        app.selection_end = Some((mouse.column, mouse.row));
-                        app.selection_pending_copy = false;
+                        let mut clicked_btn = false;
+                        if let Some((btn_y, btn_start, btn_end)) = app.quit_btn_bounds {
+                            if mouse.row == btn_y && mouse.column >= btn_start && mouse.column < btn_end {
+                                app.should_quit = true;
+                                clicked_btn = true;
+                            }
+                        }
+                        if !clicked_btn {
+                            if let Some((btn_y, btn_start, btn_end)) = app.help_btn_bounds {
+                                if mouse.row == btn_y && mouse.column >= btn_start && mouse.column < btn_end {
+                                    app.show_help = !app.show_help;
+                                    app.set_status(if app.show_help {
+                                        "Help overlay active. Press ESC/q to close.".to_string()
+                                    } else {
+                                        "Help overlay closed.".to_string()
+                                    });
+                                    clicked_btn = true;
+                                }
+                            }
+                        }
+                        if !clicked_btn {
+                            if mouse.row <= 2 {
+                                if let Some(cursor_pos) = win32::query_cursor_pos() {
+                                    if let Some(rect) = win32::get_window_rect() {
+                                        app.drag_active = true;
+                                        app.drag_start_cursor = Some(cursor_pos);
+                                        app.drag_start_window = Some((rect.left, rect.top));
+                                    }
+                                }
+                            } else {
+                                app.selection_start = Some((mouse.column, mouse.row));
+                                app.selection_end = Some((mouse.column, mouse.row));
+                                app.selection_pending_copy = false;
+                            }
+                        }
                     }
                     event::MouseEventKind::Drag(event::MouseButton::Left) => {
-                        if app.selection_start.is_some() {
+                        if app.drag_active {
+                            if let (Some(start_cursor), Some(start_window)) = (app.drag_start_cursor, app.drag_start_window) {
+                                if let Some(curr_cursor) = win32::query_cursor_pos() {
+                                    let dx = curr_cursor.0 - start_cursor.0;
+                                    let dy = curr_cursor.1 - start_cursor.1;
+                                    win32::set_window_pos(start_window.0 + dx, start_window.1 + dy);
+                                }
+                            }
+                        } else if app.selection_start.is_some() {
                             app.selection_end = Some((mouse.column, mouse.row));
                         }
                     }
                     event::MouseEventKind::Up(event::MouseButton::Left) => {
-                        if let (Some(start), Some(end)) = (app.selection_start, app.selection_end) {
+                        if app.drag_active {
+                            app.drag_active = false;
+                            app.drag_start_cursor = None;
+                            app.drag_start_window = None;
+                        } else if let (Some(start), Some(end)) = (app.selection_start, app.selection_end) {
                             if start != end {
                                 app.selection_pending_copy = true;
                             } else {
@@ -957,7 +1051,7 @@ fn main() -> Result<(), io::Error> {
             }
         }
 
-        if should_break {
+        if app.should_quit {
             break;
         }
     }
@@ -979,6 +1073,47 @@ fn main() -> Result<(), io::Error> {
 fn draw_ui(f: &mut ratatui::Frame, app: &mut App) {
     let size = f.size();
     let theme = app.theme;
+
+    // 0. Terminal Size Layout Guard
+    if size.width < 100 || size.height < 35 {
+        let block = Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::Rgb(255, 85, 85)))
+            .title(Span::styled(
+                " ⚠️  Terminal Sizing Warning ",
+                Style::default()
+                    .fg(Color::Rgb(255, 85, 85))
+                    .add_modifier(Modifier::BOLD),
+            ));
+
+        let text = vec![
+            Line::from(""),
+            Line::from(Span::styled(
+                "Layout Constraints Not Met",
+                Style::default()
+                    .fg(Color::Rgb(255, 85, 85))
+                    .add_modifier(Modifier::BOLD),
+            )),
+            Line::from(""),
+            Line::from(format!(
+                "  Current Terminal Size: {}x{}",
+                size.width, size.height
+            )),
+            Line::from("  Minimum Required Size: 100x35"),
+            Line::from(""),
+            Line::from(
+                "  Please resize or maximize your terminal window to resume standard rendering.",
+            ),
+        ];
+        let p = Paragraph::new(text)
+            .block(block)
+            .alignment(ratatui::layout::Alignment::Center);
+
+        let area = centered_rect(80, 50, size);
+        f.render_widget(ratatui::widgets::Clear, area);
+        f.render_widget(p, area);
+        return;
+    }
 
     // Layout breakdown
     let chunks = Layout::default()
@@ -1007,33 +1142,78 @@ fn draw_ui(f: &mut ratatui::Frame, app: &mut App) {
         ));
 
     let os_str = query_os_version();
+    let ver_str = format!(" rMonitor v{} ", env!("CARGO_PKG_VERSION"));
+    let user_host_str = format!("{}@{}", username, host_name);
+    let os_str_val = os_str.clone();
 
-    let title_p = Paragraph::new(Line::from(vec![
-        Span::styled(
-            format!(" rMonitor v{} ", env!("CARGO_PKG_VERSION")),
-            Style::default()
-                .fg(theme.accent)
-                .add_modifier(Modifier::BOLD),
-        ),
-        Span::styled(" │ ", Style::default().fg(theme.border)),
-        Span::styled(
-            "Press h for help",
-            Style::default()
-                .fg(theme.accent)
-                .add_modifier(Modifier::BOLD),
-        ),
-        Span::styled(" │ ", Style::default().fg(theme.border)),
-        Span::styled(
-            format!("{}@{}", username, host_name),
-            Style::default()
-                .fg(Color::Rgb(255, 215, 0))
-                .add_modifier(Modifier::BOLD),
-        ),
-        Span::styled(" │ ", Style::default().fg(theme.border)),
-        Span::styled(os_str, Style::default().fg(theme.text_main)),
-    ]))
-    .block(title_block);
-    f.render_widget(title_p, chunks[0]);
+    // Calculate dynamic coordinates for " help " and " quit " buttons
+    let button_y = chunks[0].y + 1;
+    let inner_width = chunks[0].width.saturating_sub(2) as usize;
+    let left_len = ver_str.len() + 3 + user_host_str.len() + 3 + os_str_val.len();
+    let right_len = 6 + 3 + 6; // " help " + " │ " + " quit "
+
+    let title_line = if inner_width > left_len + right_len {
+        let padding_len = inner_width - (left_len + right_len);
+        let padding_str = " ".repeat(padding_len);
+        
+        let help_offset = 1 + left_len + padding_len;
+        let help_start_x = chunks[0].x + help_offset as u16;
+        let help_end_x = help_start_x + 6;
+        app.help_btn_bounds = Some((button_y, help_start_x, help_end_x));
+
+        let quit_offset = help_offset + 6 + 3;
+        let quit_start_x = chunks[0].x + quit_offset as u16;
+        let quit_end_x = quit_start_x + 6;
+        app.quit_btn_bounds = Some((button_y, quit_start_x, quit_end_x));
+
+        Line::from(vec![
+            Span::styled(ver_str, Style::default().fg(theme.accent).add_modifier(Modifier::BOLD)),
+            Span::styled(" │ ", Style::default().fg(theme.border)),
+            Span::styled(user_host_str, Style::default().fg(Color::Rgb(255, 215, 0)).add_modifier(Modifier::BOLD)),
+            Span::styled(" │ ", Style::default().fg(theme.border)),
+            Span::styled(os_str_val, Style::default().fg(theme.accent).add_modifier(Modifier::BOLD)),
+            Span::styled(padding_str, Style::default()),
+            // Help button: " help " in yellow background, black text, underlined 'h'
+            Span::styled(" ", Style::default().bg(Color::Rgb(250, 210, 50)).fg(Color::Black).add_modifier(Modifier::BOLD)),
+            Span::styled("h", Style::default().bg(Color::Rgb(250, 210, 50)).fg(Color::Black).add_modifier(Modifier::BOLD | Modifier::UNDERLINED)),
+            Span::styled("elp ", Style::default().bg(Color::Rgb(250, 210, 50)).fg(Color::Black).add_modifier(Modifier::BOLD)),
+            Span::styled(" │ ", Style::default().fg(theme.border)),
+            // Quit button: " quit " in red background, white text, underlined 'q'
+            Span::styled(" ", Style::default().bg(Color::Rgb(255, 85, 85)).fg(Color::White).add_modifier(Modifier::BOLD)),
+            Span::styled("q", Style::default().bg(Color::Rgb(255, 85, 85)).fg(Color::White).add_modifier(Modifier::BOLD | Modifier::UNDERLINED)),
+            Span::styled("uit ", Style::default().bg(Color::Rgb(255, 85, 85)).fg(Color::White).add_modifier(Modifier::BOLD)),
+        ])
+    } else {
+        let help_offset = 1 + ver_str.len() + 3 + user_host_str.len() + 3 + os_str_val.len() + 3;
+        let help_start_x = chunks[0].x + help_offset as u16;
+        let help_end_x = help_start_x + 6;
+        app.help_btn_bounds = Some((button_y, help_start_x, help_end_x));
+
+        let quit_offset = help_offset + 6 + 3;
+        let quit_start_x = chunks[0].x + quit_offset as u16;
+        let quit_end_x = quit_start_x + 6;
+        app.quit_btn_bounds = Some((button_y, quit_start_x, quit_end_x));
+
+        Line::from(vec![
+            Span::styled(ver_str, Style::default().fg(theme.accent).add_modifier(Modifier::BOLD)),
+            Span::styled(" │ ", Style::default().fg(theme.border)),
+            Span::styled(user_host_str, Style::default().fg(Color::Rgb(255, 215, 0)).add_modifier(Modifier::BOLD)),
+            Span::styled(" │ ", Style::default().fg(theme.border)),
+            Span::styled(os_str_val, Style::default().fg(theme.accent).add_modifier(Modifier::BOLD)),
+            Span::styled(" │ ", Style::default().fg(theme.border)),
+            // Help button: " help " in yellow background, black text, underlined 'h'
+            Span::styled(" ", Style::default().bg(Color::Rgb(250, 210, 50)).fg(Color::Black).add_modifier(Modifier::BOLD)),
+            Span::styled("h", Style::default().bg(Color::Rgb(250, 210, 50)).fg(Color::Black).add_modifier(Modifier::BOLD | Modifier::UNDERLINED)),
+            Span::styled("elp ", Style::default().bg(Color::Rgb(250, 210, 50)).fg(Color::Black).add_modifier(Modifier::BOLD)),
+            Span::styled(" │ ", Style::default().fg(theme.border)),
+            // Quit button: " quit " in red background, white text, underlined 'q'
+            Span::styled(" ", Style::default().bg(Color::Rgb(255, 85, 85)).fg(Color::White).add_modifier(Modifier::BOLD)),
+            Span::styled("q", Style::default().bg(Color::Rgb(255, 85, 85)).fg(Color::White).add_modifier(Modifier::BOLD | Modifier::UNDERLINED)),
+            Span::styled("uit ", Style::default().bg(Color::Rgb(255, 85, 85)).fg(Color::White).add_modifier(Modifier::BOLD)),
+        ])
+    };
+
+    f.render_widget(Paragraph::new(title_line).block(title_block), chunks[0]);
 
     // 2. Top Panels: CPU, RAM, Disk, GPU, Network
     let top_chunks = Layout::default()
@@ -2385,29 +2565,6 @@ fn draw_spring_bar(width: u16, value: f64, max: f64) -> String {
     bar
 }
 
-fn log_message(level: &str, msg: &str) {
-    if let Ok(app_data) = std::env::var("APPDATA") {
-        let log_dir = std::path::Path::new(&app_data).join("rmonitor");
-        if std::fs::create_dir_all(&log_dir).is_ok() {
-            let log_file = log_dir.join("rmonitor.log");
-            if let Ok(mut file) = std::fs::OpenOptions::new()
-                .create(true)
-                .append(true)
-                .open(log_file)
-            {
-                use std::io::Write;
-                let timestamp = if let Ok(n) =
-                    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH)
-                {
-                    n.as_secs()
-                } else {
-                    0
-                };
-                let _ = writeln!(file, "[timestamp={}] [{}] {}", timestamp, level, msg);
-            }
-        }
-    }
-}
 
 fn print_json_snapshot() {
     let mut sys = System::new_all();
@@ -2722,105 +2879,6 @@ fn run_install() {
     println!("Installation complete!");
     println!("You can now launch 'rMonitor' from the Start Menu");
     println!("or by pressing Win+R and entering 'rmon'!");
-}
-
-#[link(name = "kernel32")]
-unsafe extern "system" {
-    fn GetConsoleTitleW(lp_console_title: *mut u16, n_size: u32) -> u32;
-    fn SetConsoleTitleW(lp_console_title: *const u16) -> i32;
-}
-
-struct ConsoleTitleGuard {
-    original_title: Option<Vec<u16>>,
-}
-
-impl ConsoleTitleGuard {
-    fn new(new_title: &str) -> Self {
-        let mut buf = [0u16; 512];
-        let len = unsafe { GetConsoleTitleW(buf.as_mut_ptr(), buf.len() as u32) };
-        let original_title = if len > 0 {
-            Some(buf[..len as usize].to_vec())
-        } else {
-            None
-        };
-
-        let title_w: Vec<u16> = new_title.encode_utf16().chain(std::iter::once(0)).collect();
-        unsafe {
-            SetConsoleTitleW(title_w.as_ptr());
-        }
-
-        ConsoleTitleGuard { original_title }
-    }
-}
-
-impl Drop for ConsoleTitleGuard {
-    fn drop(&mut self) {
-        if let Some(ref title) = self.original_title {
-            let mut title_null = title.clone();
-            title_null.push(0);
-            unsafe {
-                SetConsoleTitleW(title_null.as_ptr());
-            }
-        }
-    }
-}
-
-#[link(name = "user32")]
-unsafe extern "system" {
-    fn OpenClipboard(h_wnd_new_owner: *mut std::ffi::c_void) -> i32;
-    fn EmptyClipboard() -> i32;
-    fn SetClipboardData(u_format: u32, h_mem: *mut std::ffi::c_void) -> *mut std::ffi::c_void;
-    fn CloseClipboard() -> i32;
-}
-
-#[link(name = "kernel32")]
-unsafe extern "system" {
-    fn GlobalAlloc(u_flags: u32, dw_bytes: usize) -> *mut std::ffi::c_void;
-    fn GlobalLock(h_mem: *mut std::ffi::c_void) -> *mut std::ffi::c_void;
-    fn GlobalUnlock(h_mem: *mut std::ffi::c_void) -> i32;
-    fn GlobalFree(h_mem: *mut std::ffi::c_void) -> *mut std::ffi::c_void;
-}
-
-fn copy_text_to_clipboard(text: &str) -> std::io::Result<()> {
-    #[cfg(windows)]
-    unsafe {
-        use std::ptr;
-        if OpenClipboard(ptr::null_mut()) == 0 {
-            return Err(std::io::Error::last_os_error());
-        }
-        if EmptyClipboard() == 0 {
-            let _ = CloseClipboard();
-            return Err(std::io::Error::last_os_error());
-        }
-
-        let text_w: Vec<u16> = text.encode_utf16().chain(std::iter::once(0)).collect();
-        let len = text_w.len() * 2;
-        let h_mem = GlobalAlloc(0x0002, len); // GMEM_MOVEABLE = 0x0002
-        if h_mem.is_null() {
-            let _ = CloseClipboard();
-            return Err(std::io::Error::last_os_error());
-        }
-
-        let ptr = GlobalLock(h_mem);
-        if ptr.is_null() {
-            let _ = GlobalFree(h_mem);
-            let _ = CloseClipboard();
-            return Err(std::io::Error::last_os_error());
-        }
-
-        std::ptr::copy_nonoverlapping(text_w.as_ptr(), ptr as *mut u16, text_w.len());
-        GlobalUnlock(h_mem);
-
-        if SetClipboardData(13, h_mem).is_null() {
-            // CF_UNICODETEXT = 13
-            let _ = GlobalFree(h_mem);
-            let _ = CloseClipboard();
-            return Err(std::io::Error::last_os_error());
-        }
-
-        CloseClipboard();
-    }
-    Ok(())
 }
 
 impl App {
