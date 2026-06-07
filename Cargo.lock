@@ -457,7 +457,7 @@ dependencies = [
 [[package]]
 name = "rcommon"
 version = "1.0.0"
-source = "git+https://github.com/local76/rCommon.git?branch=main#206820feddc2a7c274bd80985da4537ccc00062c"
+source = "git+https://github.com/local76/rCommon.git?branch=main#9fad98fa3ad5064439ed99206fd76d058bd5fe9a"
 dependencies = [
  "crossterm 0.28.1",
  "ratatui 0.29.0",
