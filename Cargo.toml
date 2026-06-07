@@ -1,6 +1,6 @@
 [package]
 name = "rmonitor"
-version = "2.5.3"
+version = "2.5.4"
 edition = "2024"
 
 [dependencies]
@@ -32,3 +32,6 @@ assets = [
     { source = "assets/brand/app_icon.png", dest = "/usr/share/pixmaps/rmonitor.png", mode = "644" },
     { source = "packaging/desktop/rmonitor.desktop", dest = "/usr/share/applications/rmonitor.desktop", mode = "644" }
 ]
+
+[patch."https://github.com/local76/rCommon.git"]
+rcommon = { path = "../rCommon" }

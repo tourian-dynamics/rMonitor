@@ -456,8 +456,7 @@ dependencies = [
 
 [[package]]
 name = "rcommon"
-version = "1.0.0"
-source = "git+https://github.com/local76/rCommon.git?branch=main#0f83384df0940e6ac440b17e769ae733cfe311f0"
+version = "1.1.0"
 dependencies = [
  "crossterm 0.28.1",
  "ratatui 0.29.0",
@@ -478,7 +477,7 @@ dependencies = [
 
 [[package]]
 name = "rmonitor"
-version = "2.5.3"
+version = "2.5.4"
 dependencies = [
  "crossterm 0.27.0",
  "ratatui 0.26.3",

@@ -23,7 +23,12 @@ mod logger;
 mod config;
 
 pub mod win32 {
-    pub use rcommon::win32::*;
+    pub use rcommon::clipboard::copy_text_to_clipboard;
+    pub use rcommon::window::{
+        center_console_window, query_cursor_pos, get_window_rect, set_window_pos,
+        BorderlessConsole, ConsoleTitleGuard, SingleInstanceGuard, relaunch_in_conhost_if_needed,
+    };
+    pub use rcommon::sys_info::query_os_version;
     pub use crate::monitor_win32::*;
     pub use crate::monitor_win32::{query_power_status, PowerStatus};
 }
