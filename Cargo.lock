@@ -456,7 +456,7 @@ dependencies = [
 
 [[package]]
 name = "rcommon"
-version = "1.1.0"
+version = "3.0.16"
 dependencies = [
  "crossterm 0.28.1",
  "ratatui 0.29.0",
@@ -476,7 +476,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "rmonitor"
+name = "rmonitor-tui"
 version = "2.5.4"
 dependencies = [
  "crossterm 0.27.0",
@@ -484,7 +484,6 @@ dependencies = [
  "rcommon",
  "serde_json",
  "sysinfo",
- "windows-sys 0.59.0",
  "winreg",
  "winres",
 ]

@@ -18,8 +18,8 @@ pub fn is_event_log_enabled() -> bool {
 pub fn get_appdata_log_path() -> Option<PathBuf> {
     std::env::var("APPDATA").ok().map(|appdata| {
         std::path::PathBuf::from(appdata)
-            .join("rmonitor")
-            .join("rmonitor.log")
+            .join("rmonitor-tui")
+            .join("rmonitor-tui.log")
     })
 }
 

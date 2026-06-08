@@ -1,5 +1,6 @@
 #![allow(dead_code)]
-use windows_sys::Win32::System::Power::{GetSystemPowerStatus, SYSTEM_POWER_STATUS};
+// Power query delegates to rcommon (avoids duplicating GetSystemPowerStatus + windows_sys power feature bloat here).
+// Local PowerStatus struct kept for API compatibility with the rest of rMonitor.
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct PowerStatus {
@@ -8,12 +9,10 @@ pub struct PowerStatus {
 }
 
 pub fn query_power_status() -> PowerStatus {
-    let mut status: SYSTEM_POWER_STATUS = unsafe { std::mem::zeroed() };
-    let ok = unsafe { GetSystemPowerStatus(&mut status) };
-    if ok != 0 {
+    if let Some(p) = rcommon::sys_info::query_power_status() {
         PowerStatus {
-            ac_online: status.ACLineStatus == 1,
-            battery_percent: status.BatteryLifePercent,
+            ac_online: p.ac_online,
+            battery_percent: p.battery_percent,
         }
     } else {
         PowerStatus {

@@ -31,6 +31,25 @@ pub mod win32 {
     pub use rcommon::sys_info::query_os_version;
     pub use crate::monitor_win32::*;
     pub use crate::monitor_win32::{query_power_status, PowerStatus};
+
+    /// Hide the console window early at startup (common pattern for TUI apps).
+    /// Returns the hwnd if successful (for potential later restore).
+    #[cfg(windows)]
+    pub fn hide_console_at_startup() -> Option<*mut std::ffi::c_void> {
+        unsafe extern "system" {
+            fn GetConsoleWindow() -> *mut std::ffi::c_void;
+            fn ShowWindow(hWnd: *mut std::ffi::c_void, nCmdShow: i32) -> i32;
+        }
+        unsafe {
+            let h = GetConsoleWindow();
+            if !h.is_null() {
+                ShowWindow(h, 0); // SW_HIDE = 0
+                Some(h)
+            } else {
+                None
+            }
+        }
+    }
 }
 
 use win32::{is_dark_mode, copy_text_to_clipboard, ConsoleTitleGuard, BorderlessConsole, relaunch_in_conhost_if_needed};
@@ -490,7 +509,7 @@ impl App {
                     || name_lower.contains("render")
                     || name_lower.contains("obs")
                     || name_lower.contains("dx")
-                    || name_lower.contains("rmonitor")
+                    || name_lower.contains("rmonitor-tui")
                 {
                     (scaled_cpu * 2.0).clamp(0.0, 100.0)
                 } else {
@@ -623,13 +642,6 @@ impl App {
     }
 }
 
-#[cfg(windows)]
-unsafe extern "system" {
-    fn GetConsoleWindow() -> *mut std::ffi::c_void;
-    fn ShowWindow(hWnd: *mut std::ffi::c_void, nCmdShow: i32) -> i32;
-    fn SetForegroundWindow(hWnd: *mut std::ffi::c_void) -> i32;
-}
-
 fn main() -> Result<(), io::Error> {
     // Custom panic hook to restore console state and log critical crashes
     std::panic::set_hook(Box::new(|info| {
@@ -670,18 +682,10 @@ fn main() -> Result<(), io::Error> {
     }
 
     let config = config::AppConfig::load();
-    relaunch_in_conhost_if_needed();
+    win32::relaunch_in_conhost_if_needed();
 
     #[cfg(windows)]
-    let hwnd = unsafe {
-        let h = GetConsoleWindow();
-        if !h.is_null() {
-            ShowWindow(h, 0); // SW_HIDE = 0
-            Some(h)
-        } else {
-            None
-        }
-    };
+    let _hwnd = win32::hide_console_at_startup();
 
     let _instance_guard = match win32::SingleInstanceGuard::try_new() {
         Ok(g) => g,
@@ -694,7 +698,7 @@ fn main() -> Result<(), io::Error> {
     logger::set_event_log_enabled(config.enable_event_log);
     log_message("INFO", "rMonitor starting up...");
 
-    let _title_guard = ConsoleTitleGuard::new("rMonitor");
+    let _title_guard = ConsoleTitleGuard::new("rMonitor-tui");
 
     enable_raw_mode()?;
     let mut stdout = io::stdout();
@@ -713,10 +717,20 @@ fn main() -> Result<(), io::Error> {
     }
 
     #[cfg(windows)]
-    if let Some(h) = hwnd {
-        unsafe {
-            ShowWindow(h, 5); // SW_SHOW = 5
-            SetForegroundWindow(h);
+    {
+        // Re-show the console window after TUI init (parity with rFetch/rWifi).
+        // SAFETY: Win32 ShowWindow / SetForegroundWindow calls.
+        unsafe extern "system" {
+            fn ShowWindow(hWnd: *mut std::ffi::c_void, nCmdShow: i32) -> i32;
+            fn SetForegroundWindow(hWnd: *mut std::ffi::c_void) -> i32;
+        }
+        let hwnd = rcommon::lifecycle::foreground::window::hide_console_at_startup()
+            .unwrap_or(std::ptr::null_mut());
+        if !hwnd.is_null() {
+            unsafe {
+                ShowWindow(hwnd, 5); // SW_SHOW
+                SetForegroundWindow(hwnd);
+            }
         }
     }
 
