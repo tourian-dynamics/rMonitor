@@ -1,5 +1,5 @@
 //! Thin re-export shim so the rest of the crate can keep writing
-//! `logger::log_message(...)` etc. while delegating to rcommon.
+//! `logger::log_message(...)` etc. while delegating to library.
 
 #[allow(unused_imports)]
 pub use library::lifecycle::background::file_log::{

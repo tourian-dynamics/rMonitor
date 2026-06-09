@@ -52,21 +52,21 @@
 
 │   ├── binaries/                                     # Folder for raw, un-packaged compiled executables
 
-│   │   ├── rmonitor                                 # Compiled raw binary for Linux
+│   │   ├── pulse                                 # Compiled raw binary for Linux
 
-│   │   └── rmonitor.exe                             # Compiled raw binary for Windows
+│   │   └── pulse.exe                             # Compiled raw binary for Windows
 
 │   └── packages/                                     # Folder for final bundled distribution formats
 
-│       ├── rmonitor.apk                             # Compiled Alpine Linux package
+│       ├── pulse.apk                             # Compiled Alpine Linux package
 
-│       ├── rmonitor.appimage                        # Compiled universal Linux portable executable
+│       ├── pulse.appimage                        # Compiled universal Linux portable executable
 
-│       ├── rmonitor.deb                             # Compiled Debian/Ubuntu installation package
+│       ├── pulse.deb                             # Compiled Debian/Ubuntu installation package
 
-│       ├── rmonitor.msi                             # Compiled Windows installer package
+│       ├── pulse.msi                             # Compiled Windows installer package
 
-│       └── rmonitor.rpm                             # Compiled RedHat/Fedora installation package
+│       └── pulse.rpm                             # Compiled RedHat/Fedora installation package
 
 ├── docs/                                             # Deep-dive documentation for users/contributors
 
@@ -98,15 +98,15 @@
 
 │   │   ├── generate-completions.sh                   # Script to auto-generate below files via Rust 'clap'
 
-│   │   ├── rmonitor.bash                            # Auto-completion logic for Bash shell
+│   │   ├── pulse.bash                            # Auto-completion logic for Bash shell
 
-│   │   ├── rmonitor.fish                            # Auto-completion logic for Fish shell
+│   │   ├── pulse.fish                            # Auto-completion logic for Fish shell
 
-│   │   ├── rmonitor.nu                              # Auto-completion logic for Nushell
+│   │   ├── pulse.nu                              # Auto-completion logic for Nushell
 
-│   │   ├── rmonitor.ps1                             # Auto-completion logic for PowerShell
+│   │   ├── pulse.ps1                             # Auto-completion logic for PowerShell
 
-│   │   └── rmonitor.zsh                             # Auto-completion logic for Zsh shell
+│   │   └── pulse.zsh                             # Auto-completion logic for Zsh shell
 
 │   ├── deb/                                          # Debian/Ubuntu package environment
 
@@ -122,15 +122,15 @@
 
 │   ├── desktop/                                      # Standard Linux desktop integration files
 
-│   │   ├── rmonitor.1                               # Linux man page documentation for terminal users
+│   │   ├── pulse.1                               # Linux man page documentation for terminal users
 
-│   │   └── rmonitor.desktop                         # Linux application launcher shortcut and metadata
+│   │   └── pulse.desktop                         # Linux application launcher shortcut and metadata
 
 │   ├── flatpak/                                      # Flatpak sandboxed application environment
 
 │   │   ├── build-flatpak.sh                          # Isolated script to execute 'flatpak-builder'
 
-│   │   └── org.local76.rmonitor.yaml                # Flatpak manifest defining dependencies
+│   │   └── org.local76.pulse.yaml                # Flatpak manifest defining dependencies
 
 │   ├── nix/                                          # NixOS / Nix package manager environment
 
@@ -142,7 +142,7 @@
 
 │   │   ├── build-redhat-rpm.sh                       # Isolated script to set up rpmbuild tree and execute
 
-│   │   └── rmonitor.spec                            # RPM specification file (Name, Version, %prep, %build)
+│   │   └── pulse.spec                            # RPM specification file (Name, Version, %prep, %build)
 
 │   ├── winget/                                       # Windows Package Manager environment
 

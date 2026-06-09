@@ -1,17 +1,17 @@
-rMonitor-tui
+pulse-tui
 
 A local terminal-based system resource and performance monitor.
 
 How to Install:
-- exe / msi / deb / rpm: Download from the releases page (https://github.com/local76/rMonitor-tui/releases)
-- winget: winget install local76.rMonitor-tui
-- aur: yay -S rmonitor-tui-bin
+- exe / msi / deb / rpm: Download from the releases page (https://github.com/local76/pulse-tui/releases)
+- winget: winget install local76.pulse-tui
+- aur: yay -S pulse-tui-bin
 
-## Embedding rcommon screensaver effects (rcommon 4.2+)
+## Embedding library screensaver effects (library 4.2+)
 
-As of rcommon 4.2, all 10 r* screensaver effects (rMatrix, rBeams,
-rBhop, rFire, rFireflies, rFireworks, rLife, rParty, rPour,
-rUnstable) are consolidated into the `library::role::application::scenes`
+As of library 4.2, all 10 r* screensaver effects (glyphs, beams,
+bounce, flame, gnats, bursts, cosmos, disco, storm,
+chaos) are consolidated into the `library::role::application::scenes`
 module. If your `Cargo.toml` enables the `scenes` feature, you can
 embed any r* effect into this app's TUI without a separate crate:
 
@@ -27,7 +27,7 @@ effect.update(std::time::Duration::from_millis(16), cols, rows);
 effect.draw(&mut grid, cols, rows);
 ```
 
-Available types in rcommon 4.2:
+Available types in library 4.2:
 - `scenes::matrix::Matrix`
 - `scenes::beams::Beams`
 - `scenes::bhop::BhopDashboard`
@@ -46,7 +46,7 @@ loop, Ctrl-C to exit), use `library::screensaver_runtime::run_main`:
 fn main() {
     library::screensaver_runtime::run_main(
         library::role::application::scenes::matrix::Matrix::new(),
-        "rMatrix",
+        "glyphs",
     );
 }
 ```

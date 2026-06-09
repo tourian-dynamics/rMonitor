@@ -1,6 +1,6 @@
-//! rmonitor: netsh-based network interface status lookup.
+//! pulse: netsh-based network interface status lookup.
 //!
-//! Kept app-specific (rcommon does not wrap `netsh`).
+//! Kept app-specific (library does not wrap `netsh`).
 
 #[cfg(windows)]
 pub fn get_network_statuses() -> std::collections::HashMap<String, String> {

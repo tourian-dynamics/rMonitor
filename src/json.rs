@@ -1,4 +1,4 @@
-//! `rmonitor --json` snapshot printer.
+//! `pulse --json` snapshot printer.
 
 use sysinfo::{Disks, Networks, System};
 

@@ -1,4 +1,4 @@
-//! rMonitor entry point: top-level CLI dispatch + render loop.
+//! pulse entry point: top-level CLI dispatch + render loop.
 
 use std::{
     io,
@@ -40,7 +40,7 @@ const MIN_W: u16 = 100;
 const MIN_H: u16 = 35;
 
 fn run_tui() -> io::Result<()> {
-    file_log::set_log_app_name("rmonitor");
+    file_log::set_log_app_name("pulse");
     let _hwnd = hide_console_at_startup();
     let _instance_guard = match SingleInstanceGuard::try_new() {
         Ok(g) => g,
@@ -50,7 +50,7 @@ fn run_tui() -> io::Result<()> {
         }
     };
 
-    let _title_guard = ConsoleTitleGuard::new("rMonitor");
+    let _title_guard = ConsoleTitleGuard::new("pulse");
 
     enable_raw_mode()?;
     let mut stdout = io::stdout();
@@ -68,7 +68,7 @@ fn run_tui() -> io::Result<()> {
         center_console_window();
     }
 
-    // Re-show console after TUI is up (parity with rFetch/rStartup/rWifi).
+    // Re-show console after TUI is up (parity with helm/ignite/scout).
     #[cfg(windows)]
     {
         unsafe extern "system" {
@@ -136,12 +136,12 @@ fn run_tui() -> io::Result<()> {
         DisableMouseCapture
     )?;
     terminal.show_cursor()?;
-    file_log::log_message("INFO", "rMonitor clean shutdown complete.");
+    file_log::log_message("INFO", "pulse clean shutdown complete.");
     Ok(())
 }
 
 fn main() -> io::Result<()> {
-    file_log::set_log_app_name("rmonitor");
+    file_log::set_log_app_name("pulse");
     let args: Vec<String> = std::env::args().collect();
     if args.len() > 1 {
         match args[1].as_str() {

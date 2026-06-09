@@ -1,4 +1,4 @@
-//! rmonitor application configuration — now backed by rCommon's
+//! pulse application configuration — now backed by library's
 //! `AppConfig<T>`.
 //!
 //! **Taxonomy Classification**: Platform & Architecture (Deployment - Native).
@@ -9,11 +9,11 @@ use std::io;
 
 use library::platform::native::config::{AppConfig as GenericAppConfig, ConfigFields};
 
-pub const APP_NAME: &str = "rmonitor";
+pub const APP_NAME: &str = "pulse";
 pub const CONFIG_FILE: &str = "config.yaml";
-pub const CONFIG_HEADER: &str = "rMonitor Local Configuration\n-----------------------------";
+pub const CONFIG_HEADER: &str = "pulse Local Configuration\n-----------------------------";
 
-/// Concrete configuration fields for rmonitor.
+/// Concrete configuration fields for pulse.
 #[derive(Debug, Clone)]
 pub struct AppConfig {
     pub theme_mode: String,

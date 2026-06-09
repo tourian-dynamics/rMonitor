@@ -1,8 +1,8 @@
-//! `rmonitor doctor` and `rmonitor install` CLI subcommands.
+//! `pulse doctor` and `pulse install` CLI subcommands.
 
 pub fn run_doctor() {
     println!("==================================================");
-    println!("           rmonitor -- System Diagnostics             ");
+    println!("           pulse -- System Diagnostics             ");
     println!("==================================================");
 
     #[cfg(windows)]
@@ -89,7 +89,7 @@ pub fn run_doctor() {
 
     if let Ok(app_data) = std::env::var("APPDATA") {
         let log_file = std::path::Path::new(&app_data)
-            .join("rmonitor")
+            .join("pulse")
             .join("log.txt");
         println!("Log File Path:     {}", log_file.to_string_lossy());
         println!(
@@ -102,7 +102,7 @@ pub fn run_doctor() {
         );
     }
 
-    let clip_ok = library::lifecycle::background::clipboard::copy_text_to_clipboard("rmonitor Diagnostic Test").is_ok();
+    let clip_ok = library::lifecycle::background::clipboard::copy_text_to_clipboard("pulse Diagnostic Test").is_ok();
     println!(
         "Windows Clipboard: {}",
         if clip_ok {
@@ -117,7 +117,7 @@ pub fn run_doctor() {
 
 pub fn run_install() {
     println!("==================================================");
-    println!("           rmonitor -- Windows Installation           ");
+    println!("           pulse -- Windows Installation           ");
     println!("==================================================");
 
     let exe_path = match std::env::current_exe() {
@@ -136,7 +136,7 @@ pub fn run_install() {
     #[cfg(windows)]
     {
         let ps_script = format!(
-            r#"$WshShell = New-Object -ComObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut("$env:APPDATA\Microsoft\Windows\Start Menu\Programs\rmonitor.lnk"); $Shortcut.TargetPath = "{}"; $Shortcut.WorkingDirectory = "{}"; $Shortcut.IconLocation = "{},0"; $Shortcut.Save();"#,
+            r#"$WshShell = New-Object -ComObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut("$env:APPDATA\Microsoft\Windows\Start Menu\Programs\pulse.lnk"); $Shortcut.TargetPath = "{}"; $Shortcut.WorkingDirectory = "{}"; $Shortcut.IconLocation = "{},0"; $Shortcut.Save();"#,
             exe_path.to_string_lossy().replace('\\', "\\\\"),
             exe_dir.to_string_lossy().replace('\\', "\\\\"),
             exe_path.to_string_lossy().replace('\\', "\\\\")
@@ -146,7 +146,7 @@ pub fn run_install() {
             .status();
         match status {
             Ok(s) if s.success() => println!(
-                "  [OK] Start Menu shortcut created successfully at %APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\rmonitor.lnk"
+                "  [OK] Start Menu shortcut created successfully at %APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\pulse.lnk"
             ),
             _ => println!("  [ERROR] Failed to run PowerShell shortcut creation script"),
         }
@@ -158,7 +158,7 @@ pub fn run_install() {
         use winreg::RegKey;
         use winreg::enums::*;
         let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-        let path = r"Software\Microsoft\Windows\CurrentVersion\App Paths\rmonitor.exe";
+        let path = r"Software\Microsoft\Windows\CurrentVersion\App Paths\pulse.exe";
         match hkcu.create_subkey(path) {
             Ok((key, _)) => {
                 let _ = key.set_value("", &exe_path.to_string_lossy().to_string());
@@ -173,6 +173,6 @@ pub fn run_install() {
 
     println!("==================================================");
     println!("Installation complete!");
-    println!("You can now launch 'rmonitor' from the Start Menu");
-    println!("or by pressing Win+R and entering 'rmonitor'!");
+    println!("You can now launch 'pulse' from the Start Menu");
+    println!("or by pressing Win+R and entering 'pulse'!");
 }

@@ -1,4 +1,4 @@
-//! Draw helpers shared between the rmonitor panels and modals.
+//! Draw helpers shared between the pulse panels and modals.
 
 use ratatui::style::Color;
 use ratatui::text::Line;

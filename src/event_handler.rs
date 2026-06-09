@@ -55,7 +55,7 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         chunks[0],
         &theme,
         " Rust System Monitor ",
-        "rmonitor",
+        "pulse",
         env!("CARGO_PKG_VERSION"),
         &app.username,
         &app.host_name,
@@ -126,7 +126,7 @@ pub fn handle_key(app: &mut App, key: KeyEvent) {
                         }
                         _ => {
                             app.set_status(format!(
-                                "Failed to kill process (PID: {}). Run rmonitor as Admin?",
+                                "Failed to kill process (PID: {}). Run pulse as Admin?",
                                 pid
                             ));
                         }

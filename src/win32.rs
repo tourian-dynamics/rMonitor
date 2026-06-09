@@ -1,5 +1,5 @@
 //! Re-export shim that lets the rest of the crate keep writing
-//! `win32::query_power_status()` etc. while delegating to rcommon.
+//! `win32::query_power_status()` etc. while delegating to library.
 
 #[allow(unused_imports)]
 #[allow(unused_imports)]
@@ -22,7 +22,7 @@ pub use library::platform::native::sys_info::{
 
 /// Windows-specific accent color reading (kept local because the legacy
 /// `print` module expects a hex `String` instead of the (u8,u8,u8) tuple
-/// rcommon provides).
+/// library provides).
 pub fn get_win_accent_color() -> String {
     use winreg::RegKey;
     use winreg::enums::*;

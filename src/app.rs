@@ -1,4 +1,4 @@
-//! Application state, process data, and process-detail snapshot for rmonitor.
+//! Application state, process data, and process-detail snapshot for pulse.
 
 use std::time::Instant;
 
@@ -49,8 +49,8 @@ pub struct ProcessDetails {
     pub run_time: u64,
 }
 
-/// rmonitor extends rcommon's `ThemeColors` with a `highlight_bg` slot
-/// for the process table row highlight color (which rcommon does not
+/// pulse extends library's `ThemeColors` with a `highlight_bg` slot
+/// for the process table row highlight color (which library does not
 /// provide as a per-theme preset).
 #[derive(Debug, Clone, Copy)]
 pub struct AppTheme {
@@ -290,7 +290,7 @@ impl App {
                     || name_lower.contains("render")
                     || name_lower.contains("obs")
                     || name_lower.contains("dx")
-                    || name_lower.contains("rmonitor")
+                    || name_lower.contains("pulse")
                 {
                     (scaled_cpu * 2.0).clamp(0.0, 100.0)
                 } else {

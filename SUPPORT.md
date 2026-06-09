@@ -1,1 +1,1 @@
-https://github.com/local76/rMonitor/issues
+https://github.com/local76/pulse/issues
