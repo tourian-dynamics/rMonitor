@@ -4,10 +4,10 @@
 
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, MouseButton};
 use ratatui::{layout::Constraint, layout::Direction, layout::Layout, Frame};
-use rcommon::clipboard::copy_text_to_clipboard;
-use rcommon::interface::tui::markdown::parse_markdown_to_lines;
-use rcommon::interface::tui::theme::ThemeColors;
-use rcommon::interface::tui::widgets::{
+use library::clipboard::copy_text_to_clipboard;
+use library::interface::tui::markdown::parse_markdown_to_lines;
+use library::interface::tui::theme::ThemeColors;
+use library::interface::tui::widgets::{
     draw_title_banner, is_too_small, render_too_small_warning,
 };
 
@@ -21,7 +21,7 @@ const MIN_H: u16 = 35;
 
 pub fn current_theme(app: &App) -> ThemeColors {
     let accent = accent_color_from_hex(win32::get_win_accent_color());
-    rcommon::interface::tui::theme::get_theme(app.power.is_dark(), accent)
+    library::interface::tui::theme::get_theme(app.power.is_dark(), accent)
 }
 
 pub fn draw(f: &mut Frame, app: &mut App) {
@@ -282,10 +282,10 @@ fn open_doc(app: &mut App, name: &str) {
     };
     let dark = app.power.is_dark();
     let accent = {
-        let (r, g, b) = rcommon::platform::native::sys_info::query_accent_color();
+        let (r, g, b) = library::platform::native::sys_info::query_accent_color();
         ratatui::style::Color::Rgb(r, g, b)
     };
-    let theme = rcommon::interface::tui::theme::get_theme(dark, accent);
+    let theme = library::interface::tui::theme::get_theme(dark, accent);
     app.markdown_lines = parse_markdown_to_lines(content, &theme);
     app.show_markdown = Some(name.to_string());
     app.markdown_scroll = 0;
@@ -298,7 +298,7 @@ pub fn handle_mouse(
     col: u16,
     row: u16,
 ) {
-    use rcommon::lifecycle::foreground::window::{get_window_rect, query_cursor_pos, set_window_pos};
+    use library::lifecycle::foreground::window::{get_window_rect, query_cursor_pos, set_window_pos};
     match kind {
         crossterm::event::MouseEventKind::Down(MouseButton::Left) => {
             let mut clicked = false;

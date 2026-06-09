@@ -1,5 +1,5 @@
-﻿[package]
-name = "rmonitor"
+[package]
+name = "pulse"
 version = "3.1.2"
 edition = "2024"
 
@@ -8,7 +8,7 @@ ratatui = "0.29"
 crossterm = "0.28"
 sysinfo = "0.30"
 serde_json = "1.0.150"
-rcommon = { git = "https://github.com/local76/rCommon.git", branch = "main", features = ["interface-tui", "lifecycle-foreground", "lifecycle-background", "platform-native", "role-application", "scenes"] }
+library = { git = "https://github.com/local76/library.git", branch = "main", features = ["interface-tui", "lifecycle-foreground", "lifecycle-background", "platform-native", "role-application", "scenes"] }
 
 [target.'cfg(windows)'.dependencies]
 winreg = "0.56.0"
@@ -32,5 +32,5 @@ assets = [
     { source = "packaging/desktop/rmonitor.desktop", dest = "/usr/share/applications/rmonitor.desktop", mode = "644" }
 ]
 
-[patch."https://github.com/local76/rCommon.git"]
-rcommon = { path = "../rCommon" }
+[patch."https://github.com/local76/library.git"]
+library = { path = "../library" }

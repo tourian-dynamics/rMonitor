@@ -7,10 +7,10 @@ use ratatui::text::Line;
 use ratatui::widgets::TableState;
 use sysinfo::{Disks, Networks, System};
 
-use rcommon::interface::tui::StatusBar;
-use rcommon::interface::tui::widgets::{ButtonRect, MouseSelection};
-use rcommon::lifecycle::foreground::WindowDrag;
-use rcommon::lifecycle::foreground::power_sync::PowerThrottle;
+use library::interface::tui::StatusBar;
+use library::interface::tui::widgets::{ButtonRect, MouseSelection};
+use library::lifecycle::foreground::WindowDrag;
+use library::lifecycle::foreground::power_sync::PowerThrottle;
 
 use crate::config::AppConfig;
 use crate::spring::Spring;
@@ -54,7 +54,7 @@ pub struct ProcessDetails {
 /// provide as a per-theme preset).
 #[derive(Debug, Clone, Copy)]
 pub struct AppTheme {
-    pub base: rcommon::interface::tui::theme::ThemeColors,
+    pub base: library::interface::tui::theme::ThemeColors,
     pub highlight_bg: Color,
 }
 
@@ -66,14 +66,14 @@ impl AppTheme {
         light_highlight: Color,
     ) -> Self {
         Self {
-            base: rcommon::interface::tui::theme::get_theme(dark, accent),
+            base: library::interface::tui::theme::get_theme(dark, accent),
             highlight_bg: if dark { dark_highlight } else { light_highlight },
         }
     }
 }
 
 impl std::ops::Deref for AppTheme {
-    type Target = rcommon::interface::tui::theme::ThemeColors;
+    type Target = library::interface::tui::theme::ThemeColors;
     fn deref(&self) -> &Self::Target {
         &self.base
     }
@@ -125,13 +125,13 @@ impl App {
         let dark = match config.theme_mode.as_str() {
             "dark" => true,
             "light" => false,
-            _ => rcommon::platform::native::sys_info::query_dark_mode(),
+            _ => library::platform::native::sys_info::query_dark_mode(),
         };
         let accent =
             Color::Rgb(
-                rcommon::platform::native::sys_info::query_accent_color().0,
-                rcommon::platform::native::sys_info::query_accent_color().1,
-                rcommon::platform::native::sys_info::query_accent_color().2,
+                library::platform::native::sys_info::query_accent_color().0,
+                library::platform::native::sys_info::query_accent_color().1,
+                library::platform::native::sys_info::query_accent_color().2,
             );
         let theme = AppTheme::new(dark, accent, Color::Rgb(255, 0, 127), Color::Rgb(0, 100, 220));
 
@@ -177,9 +177,9 @@ impl App {
             quit_btn: None,
             help_btn: None,
             drag: WindowDrag::new(),
-            username: rcommon::lifecycle::foreground::identity::username(),
-            host_name: rcommon::lifecycle::foreground::identity::hostname(),
-            os_str: rcommon::lifecycle::foreground::identity::os_str(),
+            username: library::lifecycle::foreground::identity::username(),
+            host_name: library::lifecycle::foreground::identity::hostname(),
+            os_str: library::lifecycle::foreground::identity::os_str(),
         };
         app.update_metrics();
         app
@@ -198,9 +198,9 @@ impl App {
         let dark = match self.config.theme_mode.as_str() {
             "dark" => true,
             "light" => false,
-            _ => rcommon::platform::native::sys_info::query_dark_mode(),
+            _ => library::platform::native::sys_info::query_dark_mode(),
         };
-        let (r, g, b) = rcommon::platform::native::sys_info::query_accent_color();
+        let (r, g, b) = library::platform::native::sys_info::query_accent_color();
         self.theme = AppTheme::new(dark, Color::Rgb(r, g, b), Color::Rgb(255, 0, 127), Color::Rgb(0, 100, 220));
     }
 

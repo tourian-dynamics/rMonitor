@@ -3,19 +3,19 @@
 
 #[allow(unused_imports)]
 #[allow(unused_imports)]
-pub use rcommon::clipboard::copy_text_to_clipboard;
+pub use library::clipboard::copy_text_to_clipboard;
 #[allow(unused_imports)]
-pub use rcommon::lifecycle::foreground::identity::{hostname, os_str, user_host, username};
+pub use library::lifecycle::foreground::identity::{hostname, os_str, user_host, username};
 #[allow(unused_imports)]
-pub use rcommon::lifecycle::foreground::window::{
+pub use library::lifecycle::foreground::window::{
     center_console_window, get_window_rect, query_cursor_pos, set_window_pos,
     BorderlessConsole, ConsoleTitleGuard, SingleInstanceGuard,
 };
 #[allow(unused_imports)]
-pub use rcommon::platform::native::monitors::get_all_monitors;
+pub use library::platform::native::monitors::get_all_monitors;
 #[allow(unused_imports)]
 #[allow(unused_imports)]
-pub use rcommon::platform::native::sys_info::{
+pub use library::platform::native::sys_info::{
     query_bios_info, query_dark_mode as is_dark_mode, query_disk_drives, query_gpu_names,
     query_network_adapters, query_os_version, query_power_status, query_shell_and_terminal,
 };

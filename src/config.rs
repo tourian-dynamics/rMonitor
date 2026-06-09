@@ -7,7 +7,7 @@
 
 use std::io;
 
-use rcommon::platform::native::config::{AppConfig as GenericAppConfig, ConfigFields};
+use library::platform::native::config::{AppConfig as GenericAppConfig, ConfigFields};
 
 pub const APP_NAME: &str = "rmonitor";
 pub const CONFIG_FILE: &str = "config.yaml";

@@ -47,9 +47,9 @@ pub fn render_process_details_modal(
     area: Rect,
     details: &ProcessDetails,
 ) {
-    use rcommon::interface::tui::layout::centered_rect;
+    use library::interface::tui::layout::centered_rect;
     let area = centered_rect(70, 60, area);
-    let theme = rcommon::interface::tui::theme::get_theme(true, Color::Rgb(0, 245, 255));
+    let theme = library::interface::tui::theme::get_theme(true, Color::Rgb(0, 245, 255));
     let parent_str = details
         .parent_pid
         .map(|p| p.to_string())
@@ -115,9 +115,9 @@ pub fn render_process_details_modal(
 }
 
 pub fn render_kill_confirm_modal(f: &mut Frame, parent: Rect, pid_val: u32, name_val: &str) {
-    use rcommon::interface::tui::layout::centered_rect;
+    use library::interface::tui::layout::centered_rect;
     let area = centered_rect(55, 20, parent);
-    let theme = rcommon::interface::tui::theme::get_theme(true, Color::Rgb(0, 245, 255));
+    let theme = library::interface::tui::theme::get_theme(true, Color::Rgb(0, 245, 255));
     let lines = vec![
         Line::from(vec![Span::styled(
             "You are about to terminate the process:",
@@ -151,9 +151,9 @@ pub fn render_kill_confirm_modal(f: &mut Frame, parent: Rect, pid_val: u32, name
 }
 
 pub fn render_help_modal(f: &mut Frame, parent: Rect) {
-    use rcommon::interface::tui::layout::{centered_rect, format_help_row};
+    use library::interface::tui::layout::{centered_rect, format_help_row};
     let area = centered_rect(65, 75, parent);
-    let theme = rcommon::interface::tui::theme::get_theme(true, Color::Rgb(0, 245, 255));
+    let theme = library::interface::tui::theme::get_theme(true, Color::Rgb(0, 245, 255));
     let popup = Block::default()
         .title(" Keyboard Shortcuts & TUI Commands ")
         .title_style(Style::default().fg(theme.accent).add_modifier(Modifier::BOLD))
@@ -191,7 +191,7 @@ pub fn render_help_modal(f: &mut Frame, parent: Rect) {
 }
 
 pub fn render_markdown_modal(f: &mut Frame, parent: Rect, app: &App) {
-    use rcommon::interface::tui::layout::centered_rect;
+    use library::interface::tui::layout::centered_rect;
     if let Some(filename) = app.show_markdown.clone() {
         let area = centered_rect(85, 80, parent);
         f.render_widget(Clear, area);

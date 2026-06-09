@@ -31,7 +31,7 @@ pub fn run_doctor() {
         .or_else(|| sysinfo::System::name())
         .unwrap_or_else(|| "Windows".to_string());
     let kernel = sysinfo::System::kernel_version().unwrap_or_else(|| "unknown".to_string());
-    let host_name = rcommon::lifecycle::foreground::identity::hostname();
+    let host_name = library::lifecycle::foreground::identity::hostname();
     println!("Operating System:  {}", os_name);
     println!("Kernel Version:    {}", kernel);
     println!("Hostname:          {}", host_name);
@@ -102,7 +102,7 @@ pub fn run_doctor() {
         );
     }
 
-    let clip_ok = rcommon::lifecycle::background::clipboard::copy_text_to_clipboard("rmonitor Diagnostic Test").is_ok();
+    let clip_ok = library::lifecycle::background::clipboard::copy_text_to_clipboard("rmonitor Diagnostic Test").is_ok();
     println!(
         "Windows Clipboard: {}",
         if clip_ok {

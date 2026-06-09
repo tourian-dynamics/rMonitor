@@ -1,4 +1,4 @@
-﻿rMonitor-tui
+rMonitor-tui
 
 A local terminal-based system resource and performance monitor.
 
@@ -11,14 +11,14 @@ How to Install:
 
 As of rcommon 4.2, all 10 r* screensaver effects (rMatrix, rBeams,
 rBhop, rFire, rFireflies, rFireworks, rLife, rParty, rPour,
-rUnstable) are consolidated into the `rcommon::role::application::scenes`
+rUnstable) are consolidated into the `library::role::application::scenes`
 module. If your `Cargo.toml` enables the `scenes` feature, you can
 embed any r* effect into this app's TUI without a separate crate:
 
 ```rust
-use rcommon::core::screensaver::Screensaver;
-use rcommon::core::TerminalCell;
-use rcommon::role::application::scenes::matrix::Matrix;
+use library::core::screensaver::Screensaver;
+use library::core::TerminalCell;
+use library::role::application::scenes::matrix::Matrix;
 
 // In a Ratatui draw closure:
 let mut effect = Matrix::new();
@@ -40,25 +40,25 @@ Available types in rcommon 4.2:
 - `scenes::unstable::Unstable`
 
 To run an effect as a standalone terminal screensaver (own raw-tty
-loop, Ctrl-C to exit), use `rcommon::screensaver_runtime::run_main`:
+loop, Ctrl-C to exit), use `library::screensaver_runtime::run_main`:
 
 ```rust
 fn main() {
-    rcommon::screensaver_runtime::run_main(
-        rcommon::role::application::scenes::matrix::Matrix::new(),
+    library::screensaver_runtime::run_main(
+        library::role::application::scenes::matrix::Matrix::new(),
         "rMatrix",
     );
 }
 ```
 
 The `screensaver_runtime` module is gated on the `screensaver-runtime`
-feature (default-off) â€” enable it in your Cargo.toml if your app needs
+feature (default-off) — enable it in your Cargo.toml if your app needs
 to host a screensaver process directly.
 
 For the design system surface (status bar, toast, markdown viewer,
 theme + accent colors, layout guard, 12 canonical TUI effects),
-import the design faÃ§ade:
+import the design façade:
 
 ```rust
-use rcommon::interface::tui::design::prelude::*;
+use library::interface::tui::design::prelude::*;
 ```

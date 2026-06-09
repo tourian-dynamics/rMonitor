@@ -4,7 +4,7 @@
 //! `Vec<String>` without rMonitor's "discrete GPUs first" reordering.
 
 pub fn get_gpu_names_sorted() -> Vec<String> {
-    let mut gpu_names = rcommon::platform::native::sys_info::query_gpu_names();
+    let mut gpu_names = library::platform::native::sys_info::query_gpu_names();
     gpu_names.sort_by(|a, b| {
         let is_discrete_a = a.contains("RX") || a.contains("RTX") || a.contains("GTX") || a.contains("NVIDIA");
         let is_discrete_b = b.contains("RX") || b.contains("RTX") || b.contains("GTX") || b.contains("NVIDIA");

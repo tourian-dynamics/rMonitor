@@ -14,8 +14,8 @@ pub fn print() {
     let os_name = sysinfo::System::long_os_version()
         .or_else(|| sysinfo::System::name())
         .unwrap_or_else(|| "Windows".to_string());
-    let host_name = rcommon::lifecycle::foreground::identity::hostname();
-    let username = rcommon::lifecycle::foreground::identity::username();
+    let host_name = library::lifecycle::foreground::identity::hostname();
+    let username = library::lifecycle::foreground::identity::username();
     let uptime = sysinfo::System::uptime();
     let cpu_usage = sys.global_cpu_info().cpu_usage();
     let cpu_cores = sys.cpus().len();

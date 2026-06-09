@@ -11,8 +11,8 @@ use crossterm::{
     terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
 use ratatui::{Terminal, backend::CrosstermBackend};
-use rcommon::lifecycle::background::file_log;
-use rcommon::lifecycle::foreground::window::{
+use library::lifecycle::background::file_log;
+use library::lifecycle::foreground::window::{
     BorderlessConsole, ConsoleTitleGuard, SingleInstanceGuard, center_console_window,
     hide_console_at_startup,
 };
