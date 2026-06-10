@@ -125,3 +125,59 @@ pub fn accent_color_from_hex(hex: String) -> Color {
         Color::Rgb(0, 245, 255)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_format_uptime() {
+        assert_eq!(format_uptime(30), "0m");
+        assert_eq!(format_uptime(90), "1m");
+        assert_eq!(format_uptime(3600), "1h 0m");
+        assert_eq!(format_uptime(3665), "1h 1m");
+        assert_eq!(format_uptime(86400), "1d 0h 0m");
+        assert_eq!(format_uptime(90065), "1d 1h 1m");
+    }
+
+    #[test]
+    fn test_draw_spring_bar() {
+        let bar_empty = draw_spring_bar(0, 10.0, 10.0);
+        assert!(bar_empty.is_empty());
+
+        let bar_zero_max = draw_spring_bar(10, 10.0, 0.0);
+        assert!(bar_zero_max.is_empty());
+
+        let bar_full = draw_spring_bar(5, 10.0, 10.0);
+        assert_eq!(bar_full, "█████");
+
+        let bar_half = draw_spring_bar(4, 5.0, 10.0);
+        assert_eq!(bar_half, "██  ");
+    }
+
+    #[test]
+    fn test_format_speed() {
+        assert_eq!(format_speed(500.0), "500 B/s");
+        assert_eq!(format_speed(1024.0), "1.0 KB/s");
+        assert_eq!(format_speed(1536.0), "1.5 KB/s");
+        assert_eq!(format_speed(1024.0 * 1024.0), "1.0 MB/s");
+        assert_eq!(format_speed(1.5 * 1024.0 * 1024.0), "1.5 MB/s");
+    }
+
+    #[test]
+    fn test_format_total_bytes() {
+        assert_eq!(format_total_bytes(500), "500 B");
+        assert_eq!(format_total_bytes(1024), "1.0 KB");
+        assert_eq!(format_total_bytes(1536), "1.5 KB");
+        assert_eq!(format_total_bytes(1024 * 1024), "1.0 MB");
+        assert_eq!(format_total_bytes(1024 * 1024 * 1024), "1.00 GB");
+    }
+
+    #[test]
+    fn test_accent_color_from_hex() {
+        assert_eq!(accent_color_from_hex("#ff0000".to_string()), Color::Rgb(255, 0, 0));
+        assert_eq!(accent_color_from_hex("#00f5ff".to_string()), Color::Rgb(0, 245, 255));
+        assert_eq!(accent_color_from_hex("invalid".to_string()), Color::Rgb(0, 245, 255));
+    }
+}
+
