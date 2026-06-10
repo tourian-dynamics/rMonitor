@@ -6,6 +6,7 @@ pub mod cards;
 pub mod widgets;
 pub mod processes;
 pub mod overlays;
+pub mod spring;
 
 use ratatui::{
     Frame,

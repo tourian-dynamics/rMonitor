@@ -1,36 +1,48 @@
-use library::interface::cli::doctor::run_doctor_with_custom;
+use library::platform::native::sys_info::{GlyphMap, query_os_version};
 
 pub fn run_doctor() {
-    run_doctor_with_custom(|_| {
-        let gpu_names = crate::gpu_names::get_gpu_names_sorted();
-        println!("\nDetected GPUs ({}):", gpu_names.len());
-        for (i, name) in gpu_names.iter().enumerate() {
-            println!("  - GPU{}: {}", i + 1, name);
-        }
+    println!("===================================================");
+    println!("             pulse Diagnostic Doctor              ");
+    println!("===================================================\n");
 
-        let net_statuses = crate::network_statuses::get_network_statuses();
-        println!("\nNetwork Statuses (via netsh):");
-        if net_statuses.is_empty() {
-            println!("  No active statuses found or netsh failed.");
-        } else {
-            for (name, status) in &net_statuses {
-                println!("  - {}: {}", name, status);
+    let glyphs = GlyphMap::load();
+
+    // 1. Check OS
+    let os = query_os_version();
+    println!("{} OS: {}", glyphs.info, os);
+
+    let gpu_names = crate::gpu_names::get_gpu_names_sorted();
+    println!("\nDetected GPUs ({}):", gpu_names.len());
+    for (i, name) in gpu_names.iter().enumerate() {
+        println!("  - GPU{}: {}", i + 1, name);
+    }
+
+    let net_statuses = crate::network_statuses::get_network_statuses();
+    println!("\nNetwork Statuses (via netsh):");
+    if net_statuses.is_empty() {
+        println!("  No active statuses found or netsh failed.");
+    } else {
+        for (name, status) in &net_statuses {
+            println!("  - {}: {}", name, status);
+        }
+    }
+
+    println!("\nChecking Log File...");
+    if let Some(log_file) = crate::logger::get_appdata_log_path() {
+        println!("  Log File Path:     {}", log_file.to_string_lossy());
+        println!(
+            "  Log Status:        {}",
+            if log_file.exists() {
+                "Active"
+            } else {
+                "Not created yet"
             }
-        }
+        );
+    }
 
-        println!("\nChecking Log File...");
-        if let Some(log_file) = crate::logger::get_appdata_log_path() {
-            println!("  Log File Path:     {}", log_file.to_string_lossy());
-            println!(
-                "  Log Status:        {}",
-                if log_file.exists() {
-                    "Active"
-                } else {
-                    "Not created yet"
-                }
-            );
-        }
-    });
+    println!("\n===================================================");
+    println!("Diagnostics Complete.");
+    println!("===================================================");
 }
 
 pub fn run_install() {

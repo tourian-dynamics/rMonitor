@@ -27,7 +27,7 @@ use crate::config::AppConfig;
 const MIN_W: u16 = 100;
 const MIN_H: u16 = 35;
 
-fn run_tui() -> io::Result<()> {
+fn run_ui() -> io::Result<()> {
     file_log::set_log_app_name("app/pulse");
     let _hwnd = hide_console_at_startup();
 
@@ -112,5 +112,5 @@ fn main() -> io::Result<()> {
         }
     }
     let _ = library::apps::chrome::doc_for_f_key(1);
-    run_tui()
+    run_ui()
 }
