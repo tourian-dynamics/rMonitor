@@ -16,4 +16,12 @@ winreg = "0.56.0"
 [target.'cfg(windows)'.build-dependencies]
 embed-resource = "2"
 
+[package.metadata.deb]
+maintainer = "Jeryd <jerydleuck@gmail.com>"
+assets = [
+    ["target/x86_64-unknown-linux-musl/release/pulse", "usr/bin/pulse", "755"],
+    ["assets/brand/app_icon.png", "usr/share/pixmaps/pulse.png", "644"],
+    ["packaging/desktop/pulse.desktop", "usr/share/applications/pulse.desktop", "644"],
+]
+
 
