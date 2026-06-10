@@ -1,12 +1,11 @@
 # Changelog
 
-## [2026.6.10] - 2026-06-09
+## [2026.6.10] - 2026-06-10
 
 ### Changed
+- **4.2 Path Modernization**: Updated path imports to align with the `library` 4.2 restructured API (using simplified flat namespaces `apps` and `toolkit`).
 - **AppData Directory Realignment**: Moved user configuration, database, and log files into a nested %APPDATA%\local76\app\pulse structure to organize the ecosystem's configuration space.
-- **Repository Rename**: Renamed repository and local directory to pp-pulse for cleaner ecosystem taxonomy.
-
-All notable changes to this project will be documented in this file.
+- **Repository Rename**: Renamed repository and local directory to app-pulse for cleaner ecosystem taxonomy.
 
 ## [2026.6.9] - 2026-06-09
 

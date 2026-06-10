@@ -323,7 +323,7 @@ checksum = "68ab91017fe16c622486840e4c83c9a37afeff978bd239b5293d61ece587de66"
 
 [[package]]
 name = "library"
-version = "2026.6.9"
+version = "2026.6.10"
 dependencies = [
  "crossterm",
  "ratatui",
@@ -454,7 +454,7 @@ dependencies = [
 
 [[package]]
 name = "pulse"
-version = "2026.6.9"
+version = "2026.6.10"
 dependencies = [
  "crossterm",
  "embed-resource",
