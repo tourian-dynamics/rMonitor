@@ -50,3 +50,17 @@ lto = true               # Enable Link Time Optimization
 codegen-units = 1        # Reduce codegen units to maximize size reduction
 panic = "abort"          # Remove panic unwinding code
 strip = true             # Strip symbols and debuginfo
+
+[package.metadata.generate-rpm]
+name = "app-pulse"
+version = "2026.6.10-1"
+release = "1"
+arch = "x86_64"
+summary = "app-pulse package"
+description = "app-pulse package"
+license = "MIT"
+assets = [
+    { source = "target/release/pulse", dest = "/usr/bin/pulse", mode = "755" },
+    { source = "assets/brand/app_icon.png", dest = "/usr/share/pixmaps/pulse.png", mode = "644" },
+    { source = "packaging/desktop/pulse.desktop", dest = "/usr/share/applications/pulse.desktop", mode = "644" }
+]
