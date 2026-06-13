@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Pulse
+Comment=Real-time system resource monitor
+Exec=pulse
+Icon=pulse
+Terminal=true
+Categories=System;Monitor;

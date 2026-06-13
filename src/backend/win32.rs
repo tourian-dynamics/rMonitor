@@ -1,29 +1,32 @@
-﻿//! Re-export shim that lets the rest of the crate keep writing
-//! `win32::query_power_status()` etc. while delegating to library.
+//! Re-export shim that lets the rest of the crate keep writing
+//! `win32::query_power_status()` etc. while delegating to local implementations.
 
 #[allow(unused_imports)]
-pub use library::toolkit::clipboard::copy_text_to_clipboard;
+pub use crate::clipboard::copy_text_to_clipboard;
 #[allow(unused_imports)]
-pub use library::apps::identity::{hostname, os_str, user_host, username};
+pub use crate::backend::identity::{hostname, os_str, user_host, username};
 #[allow(unused_imports)]
-pub use library::apps::window::{
-    center_console_window, get_window_rect, query_cursor_pos, set_window_pos,
+pub use crate::backend::window::{
+    get_window_rect, query_cursor_pos, set_window_pos, WindowDrag,
+};
+#[allow(unused_imports)]
+pub use crate::bootstrap_guards::{
     BorderlessConsole, ConsoleTitleGuard, SingleInstanceGuard,
 };
 #[allow(unused_imports)]
-pub use library::toolkit::monitors::get_all_monitors;
+pub use crate::backend::monitors::get_all_monitors;
 #[allow(unused_imports)]
-pub use library::toolkit::sys_info::{
-    query_bios_info, query_dark_mode as is_dark_mode, query_disk_drives, query_gpu_names,
-    query_network_adapters, query_os_version, query_power_status, query_shell_and_terminal,
+pub use crate::backend::sys_info::{
+    query_bios_info, query_dark_mode as is_dark_mode, query_gpu_names,
+    query_os_version, query_power_status, query_shell_and_terminal,
 };
 
 /// Windows-specific accent color reading (kept local because the legacy
 /// `print` module expects a hex `String` instead of the (u8,u8,u8) tuple
 /// library provides).
 pub fn get_win_accent_color() -> String {
-    use winreg::RegKey;
-    use winreg::enums::*;
+    use crate::backend::registry::RegKey;
+    use crate::backend::registry::{HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_READ, KEY_WRITE, KEY_ALL_ACCESS};
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
     let path = r"Software\Microsoft\Windows\DWM";
     #[allow(clippy::collapsible_if)]

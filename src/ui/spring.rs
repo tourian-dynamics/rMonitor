@@ -28,3 +28,8 @@ impl Spring {
         self.value += self.velocity * dt;
     }
 }
+
+#[cfg(test)]
+#[path = "spring_tests.rs"]
+mod tests;
+

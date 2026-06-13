@@ -1,4 +1,4 @@
-﻿//! pulse application configuration — now backed by library's
+//! pulse application configuration — now backed by library's
 //! `AppConfig<T>`.
 //!
 //! **Taxonomy Classification**: Platform & Architecture (Deployment - Native).
@@ -7,7 +7,7 @@
 
 use std::io;
 
-use library::toolkit::config::{AppConfig as GenericAppConfig, ConfigFields};
+use crate::backend::config::{AppConfig as GenericAppConfig, ConfigFields};
 
 pub const APP_NAME: &str = "app/pulse";
 pub const CONFIG_FILE: &str = "config.yaml";
@@ -86,50 +86,7 @@ impl AppConfig {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
+#[path = "config_tests.rs"]
+mod tests;
 
-    #[test]
-    fn test_config_defaults() {
-        let cfg = AppConfig::default();
-        assert_eq!(cfg.theme_mode, "auto");
-        assert_eq!(cfg.refresh_rate_ms, 100);
-        assert!(!cfg.enable_borderless);
-        assert!(cfg.enable_toasts);
-        assert!(cfg.enable_event_log);
-    }
-
-    #[test]
-    fn test_config_parse_field() {
-        let mut cfg = AppConfig::default();
-        cfg.parse_field("theme_mode", "light");
-        cfg.parse_field("refresh_rate_ms", "250");
-        cfg.parse_field("enable_borderless", "true");
-        cfg.parse_field("enable_toasts", "false");
-        cfg.parse_field("enable_event_log", "false");
-
-        assert_eq!(cfg.theme_mode, "light");
-        assert_eq!(cfg.refresh_rate_ms, 250);
-        assert!(cfg.enable_borderless);
-        assert!(!cfg.enable_toasts);
-        assert!(!cfg.enable_event_log);
-    }
-
-    #[test]
-    fn test_config_serialize() {
-        let mut cfg = AppConfig::default();
-        cfg.theme_mode = "dark".to_string();
-        cfg.refresh_rate_ms = 500;
-        cfg.enable_borderless = true;
-
-        let fields = cfg.serialize_fields();
-        let theme_field = fields.iter().find(|(k, _)| k == "theme_mode").unwrap();
-        let rate_field = fields.iter().find(|(k, _)| k == "refresh_rate_ms").unwrap();
-        let borderless_field = fields.iter().find(|(k, _)| k == "enable_borderless").unwrap();
-
-        assert_eq!(theme_field.1, "dark");
-        assert_eq!(rate_field.1, "500");
-        assert_eq!(borderless_field.1, "true");
-    }
-}
 

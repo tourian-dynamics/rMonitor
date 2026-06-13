@@ -13,3 +13,14 @@ pub use win32 as current;
 
 #[cfg(not(windows))]
 pub use stub as current;
+
+pub mod config;
+pub mod identity;
+pub mod monitors;
+pub mod shell_terminal;
+pub mod sys_info;
+pub mod window;
+pub mod ebpf;
+
+
+pub mod sysinfo_shim;

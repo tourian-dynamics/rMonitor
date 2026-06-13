@@ -1,9 +1,9 @@
-﻿//! Keyboard input event handler for pulse.
+//! Keyboard input event handler for pulse.
 //!
 //! **Taxonomy Classification**: Interface (Presentation Layer).
 
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
-use library::ui::markdown::parse_markdown_to_lines;
+use crate::ui::markdown::parse_markdown_to_lines;
 use crate::app::{App, FocusedSection};
 use crate::ui::overlays::DOC_FILES;
 
@@ -18,7 +18,7 @@ pub fn handle_key(app: &mut App, key: KeyEvent) {
     if let Some(pid) = app.kill_confirm_pid {
         match key.code {
             KeyCode::Char('y') | KeyCode::Char('Y') => {
-                let sys_pid = sysinfo::Pid::from_u32(pid);
+                let sys_pid = crate::backend::sysinfo_shim::Pid::from_u32(pid);
                 let success = app
                     .sys
                     .process(sys_pid)
@@ -193,10 +193,10 @@ fn open_doc(app: &mut App, name: &str) {
     };
     let dark = app.power.is_dark();
     let accent = {
-        let (r, g, b) = library::toolkit::sys_info::query_accent_color();
+        let (r, g, b) = crate::backend::sys_info::query_accent_color();
         ratatui::style::Color::Rgb(r, g, b)
     };
-    let theme = library::ui::theme::get_theme(dark, accent);
+    let theme = crate::ui::theme::get_theme(dark, accent);
     app.markdown_lines = parse_markdown_to_lines(content, &theme);
     app.show_markdown = Some(name.to_string());
     app.markdown_scroll = 0;

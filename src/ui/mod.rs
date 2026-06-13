@@ -1,24 +1,36 @@
-﻿//! pulse presentation layer (UI) root module.
+//! pulse presentation layer (UI) root module.
 //!
 //! **Taxonomy Classification**: Interface (Presentation Layer).
 
 pub mod cards;
 pub mod widgets;
+pub mod widgets_net;
 pub mod processes;
 pub mod overlays;
 pub mod spring;
+pub mod colors;
+pub mod theme;
+pub mod layout_helpers;
+pub mod markdown;
+pub mod text;
+pub mod scrollbar;
+pub mod status_bar;
+pub mod layout_guard;
+pub mod mouse_selection;
+pub mod title_banner;
 
 use ratatui::{
     Frame,
     layout::{Constraint, Direction, Layout, Rect},
 };
-use library::ui::theme::{ThemeColors, get_theme};
-use library::ui::title_banner::draw_title_banner;
-use library::ui::layout_guard::{is_too_small, render_too_small_warning};
+use crate::ui::theme::{ThemeColors, get_theme};
+use crate::ui::title_banner::draw_title_banner;
+use crate::ui::layout_guard::{is_too_small, render_too_small_warning};
 
 use crate::app::{App, FocusedSection};
 use crate::metrics_format::accent_color_from_hex;
 use crate::backend::current as backend;
+
 
 const MIN_W: u16 = 100;
 const MIN_H: u16 = 35;
@@ -88,6 +100,14 @@ pub fn draw(f: &mut Frame, app: &mut App) {
 
     // Draw status bar
     overlays::render_status_bar(f, chunks[3], app);
+
+    // Render mouse selection highlights
+    app.selection.highlight(f);
+
+    // If selection took copy text, copy to clipboard
+    if let Some(text) = app.selection.take_copy_text(f) {
+        let _ = crate::clipboard::copy_text_to_clipboard(&text);
+    }
 }
 
 pub fn render_panels(f: &mut Frame, app: &mut App, chunks: std::rc::Rc<[Rect]>) {

@@ -1,6 +1,6 @@
-﻿//! `pulse --json` snapshot printer.
+//! `pulse --json` snapshot printer.
 
-use sysinfo::{Disks, Networks, System};
+use crate::backend::sysinfo_shim::{Disks, Networks, System};
 
 use crate::gpu_names;
 
@@ -11,12 +11,12 @@ pub fn print() {
     let networks = Networks::new_with_refreshed_list();
     let gpu_names = gpu_names::get_gpu_names_sorted();
 
-    let os_name = sysinfo::System::long_os_version()
-        .or_else(sysinfo::System::name)
+    let os_name = crate::backend::sysinfo_shim::System::long_os_version()
+        .or_else(crate::backend::sysinfo_shim::System::name)
         .unwrap_or_else(|| "Windows".to_string());
-    let host_name = library::apps::identity::hostname();
-    let username = library::apps::identity::username();
-    let uptime = sysinfo::System::uptime();
+    let host_name = crate::backend::identity::hostname();
+    let username = crate::backend::identity::username();
+    let uptime = crate::backend::sysinfo_shim::System::uptime();
     let cpu_usage = sys.global_cpu_info().cpu_usage();
     let cpu_cores = sys.cpus().len();
     let total_mem = sys.total_memory();
@@ -54,7 +54,7 @@ pub fn print() {
     root.insert("os".into(), serde_json::Value::String(os_name));
     root.insert(
         "kernel".into(),
-        serde_json::Value::String(sysinfo::System::kernel_version().unwrap_or_default()),
+        serde_json::Value::String(crate::backend::sysinfo_shim::System::kernel_version().unwrap_or_default()),
     );
     root.insert("hostname".into(), serde_json::Value::String(host_name));
     root.insert(

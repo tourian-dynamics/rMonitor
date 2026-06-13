@@ -1,4 +1,4 @@
-﻿use library::toolkit::sys_info::{GlyphMap, query_os_version};
+use crate::backend::sys_info::{GlyphMap, query_os_version};
 
 pub fn run_doctor() {
     println!("===================================================");
@@ -87,8 +87,8 @@ pub fn run_install() {
     println!("Registering in user App Paths (Run Dialog)...");
     #[cfg(windows)]
     {
-        use winreg::RegKey;
-        use winreg::enums::*;
+        use crate::backend::registry::RegKey;
+        use crate::backend::registry::{HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_READ, KEY_WRITE, KEY_ALL_ACCESS};
         let hkcu = RegKey::predef(HKEY_CURRENT_USER);
         let path = r"Software\Microsoft\Windows\CurrentVersion\App Paths\pulse.exe";
         match hkcu.create_subkey(path) {

@@ -1,4 +1,4 @@
-﻿//! pulse: library-specific GPU names lookup with discrete-first sort.
+//! pulse: library-specific GPU names lookup with discrete-first sort.
 //!
 //! Kept app-specific because library's `query_gpu_names` returns a flat
 //! `Vec<String>` without pulse's "discrete GPUs first" reordering.
@@ -14,7 +14,7 @@ pub fn sort_gpu_names(mut names: Vec<String>) -> Vec<String> {
 }
 
 pub fn get_gpu_names_sorted() -> Vec<String> {
-    let gpu_names = library::toolkit::sys_info::query_gpu_names();
+    let gpu_names = crate::backend::sys_info::query_gpu_names();
     sort_gpu_names(gpu_names)
 }
 

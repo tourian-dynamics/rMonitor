@@ -1,4 +1,8 @@
-﻿//! pulse entry point: top-level CLI dispatch + render loop.
+//! pulse entry point: top-level CLI dispatch + render loop.
+
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 
 use std::{
     io,
@@ -6,20 +10,29 @@ use std::{
 };
 
 use crossterm::event::{self, Event};
-use library::apps::file_log;
-use library::apps::window::hide_console_at_startup;
-use library::apps::bootstrap::{init, shutdown, Config as BootstrapConfig};
+use crate::logger as file_log;
+use crate::win32_relaunch::hide_console_at_startup;
+use crate::bootstrap::{init, shutdown, Config as BootstrapConfig};
 
 mod app;
 mod backend;
+mod bootstrap;
+mod bootstrap_guards;
+mod chrome;
+mod clipboard;
 mod config;
 mod diagnostics;
 mod gpu_names;
-mod metrics_format;
 mod json;
 mod logger;
+mod metrics_format;
 mod network_statuses;
 mod ui;
+mod utils;
+mod win32_relaunch;
+
+#[cfg(test)]
+mod tests_perf;
 
 use crate::app::App;
 use crate::config::AppConfig;
@@ -39,7 +52,7 @@ fn run_ui() -> io::Result<()> {
 
     let (mut terminal, _guards) = init(tui_config)?;
 
-        library::apps::window::show_console_window();
+        crate::backend::window::show_console_window();
 
     let mut app = App::new(config);
     let tick_rate = Duration::from_millis(app.config.refresh_rate_ms as u64);
@@ -47,7 +60,7 @@ fn run_ui() -> io::Result<()> {
     let mut last_refresh = Instant::now();
 
     while !app.should_quit {
-        if library::apps::bootstrap::is_app_shutting_down() {
+        if crate::bootstrap::is_app_shutting_down() {
             break;
         }
         app.status.tick();
@@ -111,6 +124,6 @@ fn main() -> io::Result<()> {
             _ => {}
         }
     }
-    let _ = library::apps::chrome::doc_for_f_key(1);
+    let _ = crate::chrome::embedded_docs::doc_for_f_key(1);
     run_ui()
 }
